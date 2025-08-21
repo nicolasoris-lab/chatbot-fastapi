@@ -1,0 +1,22 @@
+import os
+from dotenv import load_dotenv
+
+# Cargar las variables de entorno desde el archivo .env
+load_dotenv()
+
+# --- API Keys ---
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+# --- Rutas de Archivos ---
+CHROMA_DATA_PATH = "chroma_db"
+TEMP_UPLOAD_DIR = "temp_uploads"
+
+# --- Configuración de la Colección de ChromaDB ---
+COLLECTION_NAME = "pdf_documents"
+
+# --- Modelo de Embeddings ---
+# Puedes cambiarlo por otros modelos de SentenceTransformers si lo deseas.
+# https://www.sbert.net/docs/pretrained_models.html
+EMBEDDING_MODEL = 'all-MiniLM-L6-v2'
+
