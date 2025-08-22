@@ -3,7 +3,8 @@ import shutil
 from fastapi import APIRouter, File, UploadFile, HTTPException
 
 import config
-import services
+from services import process_pdfs_from_zip
+from vector_db import collection
 
 router = APIRouter(
     prefix="/documents",
@@ -19,9 +20,9 @@ async def upload_documents(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    processed_count = services.process_pdfs_from_zip(file_path)
+    processed_count = process_pdfs_from_zip(file_path)
 
     return {
         "message": f"{processed_count} archivos PDF procesados exitosamente.",
-        "collection_count": f"La colección ahora tiene {services.collection.count()} documentos.",
+        "collection_count": f"La colección ahora tiene {collection.count()} documentos.",
     }

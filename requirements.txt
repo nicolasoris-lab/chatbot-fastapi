@@ -1,8 +1,17 @@
 fastapi
 uvicorn[standard]
 python-multipart
-chromadb
 pypdf
 sentence-transformers
 google-generativeai
 python-dotenv
+httpx
+
+# ChromaDB y dependencias conflictivas fijadas
+chromadb==0.4.24
+pydantic<2
+posthog<4.0.0
+urllib3<2.0.0
+requests<3.0.0
+onnxruntime
+numpy==1.26.4

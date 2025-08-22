@@ -1,8 +1,9 @@
 from fastapi import APIRouter
 
-import services
+from services import perform_similarity_search
 import llm_handler
-from models import Question, GeneratedAnswer
+from models.chat_models import FilterPayload, Question, GeneratedAnswer
+from services.search_service import search_with_filters
 
 router = APIRouter(
     prefix="/chat",
@@ -14,7 +15,7 @@ async def handle_chat_message(question: Question):
     """
     Endpoint de depuración para ver los resultados de la búsqueda sin llamar al LLM.
     """
-    search_results = services.perform_similarity_search(question.query, question.n_results)
+    search_results = perform_similarity_search(question.query, question.n_results)
     
     # Devuelve los resultados crudos para revisión
     return {
@@ -32,7 +33,7 @@ async def ask_llm(question: Question):
     3. Pasa la pregunta y el contexto a un LLM para generar una respuesta citada.
     """
     # 1. Obtenemos los resultados de la búsqueda
-    search_results = services.perform_similarity_search(question.query, question.n_results)
+    search_results = perform_similarity_search(question.query, question.n_results)
 
     context_docs = search_results.get('documents', [[]])[0]
     context_metadatas = search_results.get('metadatas', [[]])[0]
@@ -66,3 +67,33 @@ async def ask_llm(question: Question):
         answer=generated_text,
         sources=context_metadatas # Pasamos los metadatos para que el frontend los pueda usar
     )
+
+# --- NUEVO ENDPOINT PARA TESTEAR FILTROS ---
+@router.post("/test-filter", summary="TEST: Probar filtros de metadatos directamente")
+async def test_filter_documents(payload: FilterPayload):
+    """
+    Endpoint de testeo para validar la búsqueda por filtros de metadatos
+    sin usar la extracción de texto. No llama al LLM.
+    """
+    # Construimos el diccionario de filtros a partir del payload
+    filters = {
+        key: value 
+        for key, value in payload.dict().items() 
+        if value is not None and key in ["tipo_documento", "numero_documento", "articulo"]
+    }
+    
+    # Llamamos a la nueva función de servicio
+    search_results = search_with_filters(
+        filters=filters, 
+        n_results=payload.n_results, 
+        query=payload.query
+    )
+    
+    # Devolvemos un resultado claro para el testeo
+    return {
+        "endpoint": "/test-filter",
+        "filtros_aplicados": filters,
+        "pregunta_semantica_opcional": payload.query,
+        "contexto_encontrado": search_results.get('documents', [[]])[0],
+        "metadatos_encontrados": search_results.get('metadatas', [[]])[0]
+    }

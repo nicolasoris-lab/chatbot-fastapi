@@ -37,11 +37,11 @@ def generate_answer_from_context(query: str, full_context_with_sources: str) -> 
 
     # El prompt ahora incluye las instrucciones para citar las fuentes.
     # La variable 'full_context_with_sources' ya viene formateada desde chat.py
+    # "IMPORTANTE: Al final de tu respuesta, siempre debes añadir una sección llamada 'Fuentes' donde cites de forma clara cada fuente que utilizaste, basándote en la información 'Fuente', 'Publicación' y 'Artículo' que se encuentra en el contexto.\n\n"
     prompt = (
         "Eres un asistente experto de la Dirección General de Rentas de Salta, Argentina. Tu tarea es responder la pregunta del usuario basándote estricta y únicamente en el contexto proporcionado.\n"
         "Si la respuesta no se encuentra en el contexto, di explícitamente: 'Basado en la información proporcionada, no puedo responder a esa pregunta.'\n"
         "Sé conciso y responde en el mismo idioma que la pregunta.\n"
-        "IMPORTANTE: Al final de tu respuesta, siempre debes añadir una sección llamada 'Fuentes' donde cites de forma clara cada fuente que utilizaste, basándote en la información 'Fuente', 'Publicación' y 'Artículo' que se encuentra en el contexto.\n\n"
         f"**Contexto Proporcionado:**\n'''\n{full_context_with_sources}\n'''\n\n"
         f"**Pregunta del Usuario:**\n{query}\n\n"
         "**Respuesta:**"
