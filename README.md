@@ -21,3 +21,6 @@ deactivate
 ```bash
 pip install -r requirements.txt
 ```
+
+# Variables de Entorno
+Crear archivo `.env` en base al archivo `.env.template` y agregarlas las variables necesarias.
