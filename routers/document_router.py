@@ -4,7 +4,7 @@ from fastapi import APIRouter, File, UploadFile, HTTPException
 
 import config
 from services import process_pdfs_from_zip
-from vector_db import collection
+from vector_db import client
 
 router = APIRouter(
     prefix="/documents",
@@ -22,7 +22,10 @@ async def upload_documents(file: UploadFile = File(...)):
     
     processed_count = process_pdfs_from_zip(file_path)
 
+    # Obtiene la información de la colección para el conteo
+    collection_info = client.get_collection(collection_name=config.COLLECTION_NAME)
+    
     return {
         "message": f"{processed_count} archivos PDF procesados exitosamente.",
-        "collection_count": f"La colección ahora tiene {collection.count()} documentos.",
+        "collection_count": f"La colección ahora tiene {collection_info.points_count} documentos.",
     }

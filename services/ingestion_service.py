@@ -7,7 +7,11 @@ from typing import Dict, Any
 
 from fastapi import HTTPException
 from pypdf import PdfReader
-from vector_db import collection, embedding_model
+from vector_db import client, embedding_model
+from qdrant_client.http.models import PointStruct
+import config
+
+import uuid
 
 def extract_document_metadata(text: str) -> Dict[str, Any]:
     """Extrae metadatos clave directamente del texto de un documento legal."""
@@ -31,60 +35,77 @@ def extract_document_metadata(text: str) -> Dict[str, Any]:
     return metadata
 
 def process_and_embed_pdf(pdf_path: str, original_filename: str):
-    """Procesa un PDF, extrae metadatos, lo divide y lo carga en la DB vectorial."""
+    """Procesa un PDF, extrae metadatos, lo divide y lo carga en Qdrant."""
     try:
-        # ... (código de lectura de PDF y extracción de metadatos sin cambios) ...
+        # ... (toda la lógica de lectura y chunking que ya corregimos se mantiene igual) ...
         reader = PdfReader(pdf_path)
         full_text = "".join(page.extract_text() for page in reader.pages if page.extract_text())
         
-        if not full_text:
+        print(f"\n--- Procesando: {original_filename} ---")
+        if not full_text.strip():
+            print("❌ Error: El archivo está vacío o no se pudo extraer texto.")
             return
 
+        print(f"✅ Texto extraído: {len(full_text)} caracteres.")
         doc_metadata = extract_document_metadata(full_text)
         doc_metadata["nombre_archivo"] = original_filename
 
+        # Chunking logico
+        # PCrea chunks en base a los articulos
+        chunks_text_raw = re.split(r'(?=Artículo \d+)', full_text, flags=re.IGNORECASE)
+        chunks_text = [chunk.strip() for chunk in chunks_text_raw if chunk.strip()]
+        
+        print(f"📑 Documento dividido en {len(chunks_text)} chunks lógicos.")
 
-        # Chunking logico por articulos
-        # Usa la frase "Artículo X" como marcador para cortar el texto
-        chunks_text = re.split(r'(?=Artículo \d+)', full_text, flags=re.IGNORECASE)
-        chunks_text = [chunk.strip() for chunk in chunks_text if chunk and chunk.strip().lower().startswith('artículo')]
-        if not chunks_text: chunks_text = [full_text]
+        if not chunks_text:
+            print(f"⚠️ Advertencia: No se generaron chunks para '{original_filename}'. Saltando archivo.")
+            return
 
-        metadatas_to_add, ids_to_add = [], []
+        embeddings = embedding_model.encode(chunks_text).tolist()
+
+        points_to_add = []
         for i, chunk in enumerate(chunks_text):
             chunk_metadata = doc_metadata.copy()
             
-            # --- ✅ LÓGICA DE NORMALIZACIÓN MODIFICADA ---
+            # ... (la lógica de metadatos se mantiene igual) ...
             if doc_metadata.get("numero_documento") != "S/N":
-                # Tomamos el número con puntos/barras (ej: "7675/11")
                 numero_con_separadores = doc_metadata["numero_documento"]
-                
-                # Usamos re.sub para eliminar todos los puntos, guiones o barras.
-                # "7675/11" se convierte en "767511"
                 numero_normalizado = re.sub(r'[\.\-\/]', '', numero_con_separadores)
-                
-                # Asignamos directamente el número limpio y completo.
                 chunk_metadata["numero_normalizado"] = numero_normalizado
             
             article_match = re.search(r"Artículo (\d+)", chunk, re.IGNORECASE)
             article_num = article_match.group(1) if article_match else f"parrafo_{i}"
             chunk_metadata["articulo"] = article_num
             
-            metadatas_to_add.append(chunk_metadata)
-            ids_to_add.append(f"{original_filename}_{article_num}_{i}")
-        
-        if not chunks_text:
-            print(f"Advertencia: No se generaron chunks para '{original_filename}'. Saltando archivo.")
-            return
+            chunk_metadata["texto"] = chunk
+            
+            # --- ✅ 2. LÓGICA DE ID CORREGIDA ---
+            # Primero, creamos la misma cadena de texto única que antes.
+            unique_string_id = f"{original_filename}_{article_num}_{i}"
+            
+            # Luego, la convertimos a un UUID válido usando un "namespace".
+            # Esto garantiza que la misma cadena siempre genere el mismo UUID.
+            point_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, unique_string_id))
 
-        embeddings = embedding_model.encode(chunks_text).tolist()
-        collection.add(
-            embeddings=embeddings, documents=chunks_text,
-            metadatas=metadatas_to_add, ids=ids_to_add
-        )
-        print(f"Procesado y añadido '{original_filename}' con {len(chunks_text)} chunks lógicos.")
+            points_to_add.append(
+                PointStruct(
+                    id=point_id, # Usamos el nuevo ID en formato UUID
+                    vector=embeddings[i],
+                    payload=chunk_metadata
+                )
+            )
+        
+        print(f"📦 Preparando para subir {len(points_to_add)} puntos a Qdrant.")
+        if points_to_add:
+            client.upsert(
+                collection_name=config.COLLECTION_NAME,
+                points=points_to_add,
+                wait=True
+            )
+            print(f"✔️  Carga a Qdrant completada para '{original_filename}'.")
+
     except Exception as e:
-        print(f"Error procesando el archivo {original_filename}: {e}")
+        print(f"❌ Error fatal procesando el archivo {original_filename}: {e}")
 
 def process_pdfs_from_zip(zip_path: str):
     """Función principal que orquesta la extracción y procesamiento de un ZIP."""
