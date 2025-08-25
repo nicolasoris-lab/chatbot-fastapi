@@ -84,8 +84,9 @@ def get_rag_response_for_telegram(user_query: str) -> str:
     sources_text = "\n".join(sources_text_parts)
 
     LLM_NO_ANSWER_RESPONSE = 'Basado en la información proporcionada, no puedo responder a esa pregunta\.'
+    LLM_ERROR_RESPONSE = 'Hubo un error al generar la respuesta. Por favor, intenta de nuevo más tarde.'
 
-    if LLM_NO_ANSWER_RESPONSE in safe_answer:
+    if LLM_NO_ANSWER_RESPONSE in safe_answer or LLM_ERROR_RESPONSE in safe_answer:
         final_response = (
         f"{safe_answer}"
         )
