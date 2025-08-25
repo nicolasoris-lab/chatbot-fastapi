@@ -4,6 +4,10 @@ from dotenv import load_dotenv
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
 
+# --- PORT y HOST ---
+PORT = os.getenv("PORT")
+HOST = os.getenv("HOST")
+
 # --- API Keys ---
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
