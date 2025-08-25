@@ -83,11 +83,19 @@ def get_rag_response_for_telegram(user_query: str) -> str:
     
     sources_text = "\n".join(sources_text_parts)
 
-    # 3. Unimos todo en la respuesta final
-    final_response = (
-        f"{safe_answer}\n\n"
-        f"*Fuentes consultadas:*\n"
-        f"{sources_text}"
-    )
+    LLM_NO_ANSWER_RESPONSE = 'Basado en la información proporcionada, no puedo responder a esa pregunta\.'
+
+    if LLM_NO_ANSWER_RESPONSE in safe_answer:
+        final_response = (
+        f"{safe_answer}"
+        )
+    else:
+        # 3. Unimos todo en la respuesta final
+        final_response = (
+            f"{safe_answer}\n\n"
+            f"*Fuentes consultadas:*\n"
+            f"{sources_text}"
+        )
+
     
     return final_response

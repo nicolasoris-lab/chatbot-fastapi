@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- PORT y HOST ---
-PORT = os.getenv("PORT")
+PORT = int(os.environ.get("PORT", 8001))
 HOST = os.getenv("HOST")
 
 # --- API Keys ---
