@@ -7,12 +7,28 @@ from qdrant_client.http import models
 from vector_db import client, embedding_model
 import config
 
-def extract_context(query: str) -> bool:
+def extract_context(query: str) -> str | None:
     # \b asegura que se busquen palabras completas (evita que "mision" coincida en "admision")
-    pattern = r'\b(dgr|direccion general de rentas|clave fiscal|contribuyente|reclamo|autoridades|director|jefe|auditor|supervisor|administrador|convenio|afip|arca|mision|vision|valores)\b'
-    if re.search(pattern, query, re.IGNORECASE):
-        return True
-    return False # Es mejor devolver False explícitamente que None
+    pattern_mision = r'\b(mision(es)?|vision(es)?|valor(es)?|calidad(es)?)\b'
+    match_mision = re.search(pattern_mision, query, re.IGNORECASE)
+    if match_mision:
+        return "Mision"
+    
+    pattern_auto = r'\b(autoridad(es)?|director(a|es|as)?|auditor(a|es|as)?|jefe(a|s)?|supervisor(a|es|as)?|administrador(a|es|as)?|cargo(s)?|responsable(s)?)\b'
+    match_auto = re.search(pattern_auto, query, re.IGNORECASE)
+    if match_auto:
+        return "Autoridades"
+    
+    pattern_conve = r'\b(convenio|organismo|acuerdo)\b'
+    match_conve = re.search(pattern_conve, query, re.IGNORECASE)
+    if match_conve:
+        return "Convenios"
+    
+    pattern_dgr = r'\b(dgr|direccion(es)? general(es)? de renta(s)?|clave(s)? fiscal(es)?|contribuyente(s)?|reclamo(s)?|dj|afip|arca|blanqueo(s)?|impuesto(s)?|alta(s)?|baja(s)?|rut|ddjj|sipot|ingreso(s)?|bruto(s)?|declaracion(es)? jurada(s)?|pago(s)?|monto(s)?|percepcion(es)?|obligacion(es)?|rsp|monotributo(s)?|tasa(s)?|interes(es)?|riesgo(s)?|fiscal(es)?|cuota(s)?|cbu|judicial(es)?|delegacion(es)?|moratoria(s)?|deuda(s)?|actividad(es)? economica(s)?|agente(s)?|retencion(es)?)\b'
+    match_dgr = re.search(pattern_dgr, query, re.IGNORECASE)
+    if match_dgr:
+        return "DGR"
+    return None
 
 def extract_key_number(query: str) -> str | None:
     match = re.search(r"(?:ley|decreto|resolucion|ley nro|decreto nro|ley n)\s*([\d\.\-\/]+)", query, re.IGNORECASE)
@@ -60,7 +76,7 @@ def perform_similarity_search(query: str, n_results: int):
 
     key_number = extract_key_number(query)
     article_number = extract_article_number(query)
-    is_context_query = extract_context(query)
+    subtema = extract_context(query)
 
     # Construcción de filtros para Qdrant
     filter_conditions = []
@@ -80,11 +96,15 @@ def perform_similarity_search(query: str, n_results: int):
             ))
             
     # 2. SI NO ES LEGAL, ¿es de contexto?
-    elif is_context_query:
+    elif subtema:
         print("Detectada búsqueda de contexto.")
         filter_conditions.append(models.FieldCondition(
             key="tipo_documento",
             match=models.MatchValue(value="Contexto")
+        ))
+        filter_conditions.append(models.FieldCondition(
+            key="subtema",
+            match=models.MatchValue(value=subtema)
         ))
     
     # Construye el filtro final si hay condiciones

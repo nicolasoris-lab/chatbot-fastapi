@@ -145,11 +145,26 @@ def process_and_embed_pdf_context(pdf_path: str, original_filename: str):
             return
 
         print(f"✅ Texto extraído: {len(full_text)} caracteres.")
+
+        subtema = ""
+
+        if "Convenios" in original_filename:
+            subtema = "Convenios"
+
+        if "Autoridades" in original_filename:
+            subtema = "Autoridades"
+
+        if "Mision" in original_filename:
+            subtema = "Mision"
+
+        if "DGR" in original_filename:
+            subtema = "DGR"
         
         # 1. Definir los metadatos básicos para este documento de contexto.
         doc_metadata = {
             "tipo_documento": "Contexto", # ¡Metadato clave!
-            "nombre_archivo": original_filename
+            "nombre_archivo": original_filename,
+            "subtema": subtema
         }
 
         # 2. Dividir el texto usando la nueva función semántica.
