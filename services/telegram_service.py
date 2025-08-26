@@ -74,10 +74,13 @@ def get_rag_response_for_telegram(user_query: str) -> str:
         # Sanitizamos cada pieza de metadatos antes de insertarla
         tipo_doc = escape_markdown_v2(meta.get('tipo_documento', 'Doc'))
         num_doc = escape_markdown_v2(meta.get('numero_documento', ''))
-        articulo = escape_markdown_v2(meta.get('articulo', 'N/A'))
+        articulo = escape_markdown_v2(meta.get('articulo', ''))
 
         # Construimos la línea con sintaxis MarkdownV2 válida (escapando '-' y '.')
-        source_line = f"\\- *{tipo_doc} {num_doc}*, Art\\. {articulo}"
+        if articulo != "":
+            source_line = f"\\- *{tipo_doc} {num_doc}*, Art\\. {articulo}"
+        else:
+            source_line = f"\\- *{tipo_doc} {num_doc}*"            
         if source_line not in sources_text_parts:
             sources_text_parts.append(source_line)
     

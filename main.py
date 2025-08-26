@@ -3,7 +3,7 @@ import uvicorn
 from fastapi import FastAPI
 
 import config
-from routers import chat_router, document_router, webhook_router
+from routers import document_router, test_router, webhook_router
 
 # --- INICIALIZACIÓN DE LA APP ---
 app = FastAPI(
@@ -16,7 +16,7 @@ os.makedirs(config.TEMP_UPLOAD_DIR, exist_ok=True)
 
 # --- INCLUIR ROUTERS ---
 app.include_router(document_router.router)
-app.include_router(chat_router.router)
+app.include_router(test_router.router)
 app.include_router(webhook_router.router)
 
 @app.get("/", tags=["Root"])

@@ -12,6 +12,11 @@ HOST = os.getenv("HOST")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
+# Configuración del LLM
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini") # 'gemini' por defecto
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1")
+OLLAMA_HOST = os.getenv("OLLAMA_HOST")
+
 # --- Rutas de Archivos ---
 CHROMA_DATA_PATH = "chroma_db"
 TEMP_UPLOAD_DIR = "temp_uploads"

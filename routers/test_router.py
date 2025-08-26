@@ -6,8 +6,8 @@ from models.chat_models import FilterPayload, Question, GeneratedAnswer
 from services.search_service import search_with_filters
 
 router = APIRouter(
-    prefix="/chat",
-    tags=["Chat"]
+    prefix="/test",
+    tags=["Test"]
 )
 
 @router.post("/", summary="Enviar un mensaje al chat (Modo Depuración)")
