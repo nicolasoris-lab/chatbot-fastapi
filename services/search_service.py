@@ -44,7 +44,7 @@ def extract_article_number(query: str) -> str | None:
         return match.group(1)
     return None
 
-# --- 💡 FUNCIÓN HELPER PARA FORMATEAR RESULTADOS ---
+# --- FUNCIÓN HELPER PARA FORMATEAR RESULTADOS ---
 def _format_qdrant_results(results: List[models.ScoredPoint]) -> Dict[str, Any]:
     """Convierte la salida de Qdrant al formato que esperaba el router (similar a ChromaDB)."""
     if not results:
@@ -61,7 +61,7 @@ def _format_qdrant_results(results: List[models.ScoredPoint]) -> Dict[str, Any]:
     return {'documents': [documents], 'metadatas': [metadatas]}
 
 
-# --- ✅ FUNCIÓN DE BÚSQUEDA PRINCIPAL ACTUALIZADA ---
+# --- FUNCIÓN DE BÚSQUEDA PRINCIPAL ---
 def perform_similarity_search(query: str, n_results: int):
     """
     Realiza una búsqueda inteligente decidiendo el tipo de filtro a aplicar.
@@ -138,7 +138,7 @@ def perform_similarity_search(query: str, n_results: int):
     return _format_qdrant_results(search_results)
 
 
-# --- ✅ FUNCIÓN DE TESTEO DE FILTROS ACTUALIZADA ---
+# --- FUNCIÓN DE TESTEO DE FILTROS ---
 def search_with_filters(filters: dict, n_results: int, query: str = ""):
     """Realiza una búsqueda en Qdrant usando un diccionario de filtros explícito."""
     collection_info = client.get_collection(collection_name=config.COLLECTION_NAME)

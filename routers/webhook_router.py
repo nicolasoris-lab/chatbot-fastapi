@@ -4,7 +4,6 @@ import config
 from fastapi import APIRouter, Response
 
 from models.telegram_models import TelegramUpdate
-# ¡Importamos la nueva función del servicio!
 from services import send_telegram_message, get_rag_response_for_telegram, is_valid_prompt, welcome_message
 
 router = APIRouter(

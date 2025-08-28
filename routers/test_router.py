@@ -32,7 +32,7 @@ async def ask_llm(question: Question):
     2. Construye un contexto enriquecido con la información de las fuentes.
     3. Pasa la pregunta y el contexto a un LLM para generar una respuesta citada.
     """
-    # 1. Obtenemos los resultados de la búsqueda
+    # Obtenemos los resultados de la búsqueda
     search_results = perform_similarity_search(question.query, question.n_results)
 
     context_docs = search_results.get('documents', [[]])[0]
@@ -41,10 +41,9 @@ async def ask_llm(question: Question):
     if not context_docs:
         return GeneratedAnswer(
             answer="Lo siento, no pude encontrar información relevante en mi base de datos para responder a tu pregunta.",
-            sources=[] # Devolvemos una lista vacía de fuentes
+            sources=[]
         )
 
-    # 2. <-- ¡AQUÍ ESTÁ LA MAGIA! Se construye el contexto enriquecido
     formatted_context_parts = []
     for doc, meta in zip(context_docs, context_metadatas):
         source_info = (
@@ -59,16 +58,16 @@ async def ask_llm(question: Question):
     
     full_context = "\n\n".join(formatted_context_parts)
 
-    # 3. Se llama al handler del LLM, pero ahora con el contexto ya formateado
+    # Se llama al handler del LLM, pero ahora con el contexto ya formateado
     generated_text = llm_handler.generate_answer_from_context(question.query, full_context)
     
-    # 4. Devolvemos la respuesta y también los metadatos como fuentes
+    # Devolvemos la respuesta y también los metadatos como fuentes
     return GeneratedAnswer(
         answer=generated_text,
-        sources=context_metadatas # Pasamos los metadatos para que el frontend los pueda usar
+        sources=context_metadatas
     )
 
-# --- NUEVO ENDPOINT PARA TESTEAR FILTROS ---
+# --- ENDPOINT PARA TESTEAR FILTROS ---
 @router.post("/test-filter", summary="TEST: Probar filtros de metadatos directamente")
 async def test_filter_documents(payload: FilterPayload):
     """

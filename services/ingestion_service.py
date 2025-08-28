@@ -13,7 +13,7 @@ from qdrant_client.http.models import PointStruct
 import config
 from vector_db import client, embedding_model
 
-# --- NUEVA FUNCIÓN AUXILIAR PARA CHUNKING ---
+# --- FUNCIÓN AUXILIAR PARA CHUNKING ---
 def split_text_into_chunks(text: str, chunk_size: int, chunk_overlap: int) -> List[str]:
     """
     Divide un texto largo en chunks de tamaño aproximado `chunk_size` con superposición.
@@ -83,9 +83,10 @@ def process_and_embed_pdf(pdf_path: str, original_filename: str):
         doc_metadata = extract_document_metadata(full_text)
         doc_metadata["nombre_archivo"] = original_filename
 
+        # Chunk logico
+        # Divide los chunks en base a articulos
         article_pattern = r'(?=Artículo\s*[\dºª]+\b)'
         chunks_text_raw = re.split(article_pattern, full_text, flags=re.IGNORECASE)
-        #chunks_text = [chunk.strip() for chunk in chunks_text_raw if chunk.strip()]
 
         min_chunk_length = 50 # Define un mínimo de caracteres para que un chunk sea válido
 
@@ -162,7 +163,7 @@ def process_and_embed_pdf_context(pdf_path: str, original_filename: str):
         
         # 1. Definir los metadatos básicos para este documento de contexto.
         doc_metadata = {
-            "tipo_documento": "Contexto", # ¡Metadato clave!
+            "tipo_documento": "Contexto", # Metadato clave
             "nombre_archivo": original_filename,
             "subtema": subtema
         }
