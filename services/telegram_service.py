@@ -99,7 +99,7 @@ def get_rag_response_for_telegram(user_query: str) -> str:
         # 3. Unimos todo en la respuesta final
         final_response = (
             f"{safe_answer}\n\n"
-            f"*Fuentes consultadas:*\n"
+            f"*Fuentes consultadas📚:*\n"
             f"{sources_text}"
         )
 
